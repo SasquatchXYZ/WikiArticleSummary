@@ -3,12 +3,20 @@ use crossterm::{
     execute,
     terminal::{Clear, ClearType},
 };
+use serde::Deserialize;
 use reqwest::blocking::get;
 use std::io::stdout;
 
-#[derive(Debug, Default)]
+#[derive(Debug, Deserialize, Default)]
 struct App {
     user_input: String,
+}
+
+#[derive(Debug, Deserialize, Default)]
+struct CurrentArticle {
+    title: String,
+    description: String,
+    extract: String,
 }
 
 const URL: &str = "https://en.wikipedia.org/api/rest_v1/page/summary";
@@ -30,7 +38,8 @@ fn main() {
                         print!("Searching Wikipedia...");
                         let req = get(format!("{URL}/{}", app.user_input)).unwrap();
                         let text = req.text().unwrap();
-                        println!("{text}");
+                        let as_article: CurrentArticle = serde_json::from_str(&text).unwrap();
+                        println!("{as_article:#?}");
                     }
                     KeyCode::Char(c) => {
                         app.user_input.push(c);
